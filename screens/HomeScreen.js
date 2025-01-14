@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { createClient } from '@supabase/supabase-js';
+import BottomMenu from './components/BottomMenu';
 
 const supabaseUrl = 'https://acanrjccdzyrarquivkb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYW5yamNjZHp5cmFycXVpdmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjc0NTQsImV4cCI6MjA1MTg0MzQ1NH0.ljZLA5asW_vsrdd7Kd2Zimkc5wnqhbAXu2EdQbMunhE';
@@ -25,7 +26,7 @@ const HomeScreen = ({ navigation }) => {
       >
         <TouchableOpacity 
           style={styles.button} 
-          onPress={() => navigation.navigate('Categoria', { nome: item })}
+          onPress={() => navigation.navigate('CategoriaScreen', { nome: item })}
         >
           <Text style={styles.itemText}>{item}</Text> 
         </TouchableOpacity>
@@ -41,6 +42,8 @@ const HomeScreen = ({ navigation }) => {
         keyExtractor={item => item}
         numColumns={2} 
       />
+      {/* Aggiungi il BottomMenu */}
+      <BottomMenu /> 
     </View>
   );
 };

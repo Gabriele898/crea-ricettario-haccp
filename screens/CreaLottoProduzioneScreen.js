@@ -1,213 +1,131 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  FlatList,
-  Text,
-} from "react-native";
-import { createClient } from "@supabase/supabase-js";
-import { Calendar } from "react-native-calendars";
-import { Picker } from "@react-native-picker/picker";
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button, StyleSheet, TextInput, Picker, ScrollView } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://acanrjccdzyrarquivkb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYW5yamNjZHp5cmFycXVpdmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjc0NTQsImV4cCI6MjA1MTg0MzQ1NH0.ljZLA5asW_vsrdd7Kd2Zimkc5wnqhbAXu2EdQbMunhE';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const CreaLottoProduzioneScreen = ({ route, navigation }) => {
-  const { semilavoratoId } = route.params;
-  const [dataProduzione, setDataProduzione] = useState(
-    `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}-${new Date().getDate().toString().padStart(2, '0')}`
-  );
-  const [responsabile, setResponsabile] = useState('');
-  const [responsabili, setResponsabili] = useState([]);
+const CreaLottoScreen = ({ route, navigation }) => {
+  const { semilavorato } = route.params;
+  const [dataProduzione, setDataProduzione] = useState(new Date());
+  const [responsabile, setResponsabile] = useState(null);
   const [ingredienti, setIngredienti] = useState([]);
-  const [ingredientiLotto, setIngredientiLotto] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [note, setNote] = useState('');
-  const [mostraCalendario, setMostraCalendario] = useState(false);
+  const [responsabili, setResponsabili] = useState([]);
+  const [fornitori, setFornitori] = useState([]); // Aggiunto stato per i fornitori
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedIngredientIndex, setSelectedIngredientIndex] = useState(null);
 
-  const flatListRef = useRef(null);
+  // Formatta la data per il componente TextInput
+  const dataProduzioneStringa = dataProduzione.toISOString().split('T')[0];
 
   useEffect(() => {
+    // Carica la lista dei responsabili da Supabase
     const fetchResponsabili = async () => {
-      const { data, error } = await supabase
-        .from('responsabili')
-        .select('id, nome');
-
-      if (error) {
-        console.error('Errore durante il recupero dei responsabili:', error);
-      } else {
-        setResponsabili(data);
-      }
+      // ... (codice per caricare i responsabili) ...
     };
 
-    const fetchIngredienti = async () => {
-      const { data, error } = await supabase
-        .from('ingredienti')
-        .select('*')
-        .eq('semilavoratoid', semilavoratoId);
+    // Carica la lista dei fornitori da Supabase
+    const fetchFornitori = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('fornitori') // Nome della tabella dei fornitori
+          .select('id, nome');
 
-      if (error) {
-        console.error('Errore durante il recupero degli ingredienti:', error);
-      } else {
-        setIngredienti(data);
-        setIngredientiLotto(data.map(ingrediente => ({
-          ...ingrediente,
-          quantita: 0,
-          ddt: '',
-          dataArrivo: ''
-        })));
+        if (error) {
+          console.error('Errore nel recupero dei fornitori:', error);
+        } else {
+          setFornitori(data);
+        }
+      } catch (error) {
+        console.error('Errore generico:', error);
       }
     };
 
     fetchResponsabili();
-    fetchIngredienti();
+    fetchFornitori(); // Chiama la funzione per caricare i fornitori
+
+    // Imposta gli ingredienti iniziali 
+    setIngredienti(semilavorato.ingredienti.map(ingrediente => ({
+      ...ingrediente,
+      ddt: '',
+      dataArrivo: '',
+      fornitoreId: null,
+      note: '',
+      quantita: 0,
+    })));
   }, []);
 
-
-  const handleRimuoviIngrediente = (ingrediente) => {
-    setIngredientiLotto(
-      ingredientiLotto.filter((item) => item.id !== ingrediente.id),
-    );
-  };
-
-  const handleQuantitaChange = (index, value) => {
-    const updatedIngredienti = [...ingredientiLotto];
-    updatedIngredienti[index].quantita = value;
-    setIngredientiLotto(updatedIngredienti);
-  };
-
-  const handleDdtChange = (index, value) => {
-    const updatedIngredienti = [...ingredientiLotto];
-    updatedIngredienti[index].ddt = value;
-    setIngredientiLotto(updatedIngredienti);
-  };
-
-  const handleDataArrivoChange = (index, value) => {
-    const updatedIngredienti = [...ingredientiLotto];
-    updatedIngredienti[index].dataArrivo = value;
-    setIngredientiLotto(updatedIngredienti);
-  };
+  // ... (Funzioni handleDateChange e showDatepicker) ...
 
   const handleSubmit = async () => {
-    const newErrors = {};
-
-    if (!dataProduzione) {
-      newErrors.dataProduzione = 'Compilare il campo data di produzione';
-    }
-    // ... (aggiungi validazione per altri campi) ...
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
     try {
+      // Crea un nuovo oggetto lotto con i dati raccolti
+      const nuovoLotto = {
+        semilavoratoId: semilavorato.id,
+        dataProduzione: dataProduzione.toISOString(),
+        responsabile: responsabile,
+        ingredienti: ingredienti,
+      };
+
+      // Esegui la query a Supabase per inserire il nuovo lotto nel database
       const { error } = await supabase
-        .from('lottiproduzione')
-        .insert({
-          semilavoratoid: semilavoratoId,
-          dataproduzione: dataProduzione,
-          responsabile: responsabile,
-          ingredienti: { ingredienti: ingredientiLotto },
-        });
+        .from('lottiProduzione')
+        .insert([nuovoLotto]);
 
       if (error) {
-        console.error('Errore durante la creazione del lotto di produzione:', error);
+        console.error('Errore durante la creazione del lotto:', error);
+        // Mostra un messaggio di errore all'utente
       } else {
-        navigation.goBack();
+        // Mostra un messaggio di successo all'utente
+        // Reindirizza l'utente alla schermata di dettagli del lotto appena creato
+        navigation.navigate('DettagliLottoScreen', { lotto: nuovoLotto });
       }
     } catch (error) {
-      console.error('Errore durante la creazione del lotto di produzione:', error);
+      console.error('Errore generico:', error);
+      // Mostra un messaggio di errore all'utente
     }
   };
 
-  const handleDayPress = (day) => {
-    setDataProduzione(day.dateString);
-    setMostraCalendario(false);
-  };
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Data produzione (YYYY-MM-DD)"
-        value={dataProduzione}
-        onFocus={() => setMostraCalendario(true)}
-      />
-      {mostraCalendario && (
-        <Calendar
-          onDayPress={handleDayPress}
-          markedDates={{
-            [dataProduzione]: { selected: true, selectedColor: "blue" },
-          }}
-        />
-      )}
-      <Picker
-        style={styles.input}
-        selectedValue={responsabile}
-        onValueChange={(itemValue) => setResponsabile(itemValue)}
-      >
-        <Picker.Item label="Seleziona responsabile" value="" />
-        {responsabili.map((r) => (
-          <Picker.Item key={r.id} label={r.nome} value={r.id} />
-        ))}
-      </Picker>
-      <Text style={styles.title}>Ingredienti:</Text>
-      <FlatList
-        ref={flatListRef}
-        data={ingredientiLotto}
-        renderItem={({ item, index }) => (
-          <View style={styles.item}>
-            <Text style={styles.itemText}>{item.nome}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Quantità"
-              value={item.quantita.toString()}
-              onChangeText={(value) => handleQuantitaChange(index, value)}
-              keyboardType="numeric"
-              onFocus={() => {
-                flatListRef.current.scrollToIndex({ animated: true, index }); // Scorri alla posizione dell'input focalizzato
+      {/* ... (Titolo, input per data di produzione, picker per responsabile) ... */}
+
+      <ScrollView>
+        {ingredienti.map((ingrediente, index) => (
+          <View key={ingrediente.id} style={styles.ingredienteContainer}>
+            {/* ... (Nome ingrediente, input per DDT, calendario per data di arrivo) ... */}
+
+            {/* Picker per il fornitore */}
+            <Picker
+              style={styles.picker}
+              selectedValue={ingrediente.fornitoreId}
+              onValueChange={(itemValue) => {
+                const updatedIngredienti = [...ingredienti];
+                updatedIngredienti[index].fornitoreId = itemValue;
+                setIngredienti(updatedIngredienti);
               }}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="DDT"
-              value={item.ddt}
-              onChangeText={(value) => handleDdtChange(index, value)}
-              onFocus={() => {
-                flatListRef.current.scrollToIndex({ animated: true, index }); // Scorri alla posizione dell'input focalizzato
-              }}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Data arrivo (YYYY-MM-DD)"
-              value={item.dataArrivo}
-              onChangeText={(value) => handleDataArrivoChange(index, value)}
-              onFocus={() => {
-                flatListRef.current.scrollToIndex({ animated: true, index }); // Scorri alla posizione dell'input focalizzato
-              }}
-            />
-            <Button title="Rimuovi" onPress={() => handleRimuoviIngrediente(item)} />
+            >
+              <Picker.Item label="Seleziona un fornitore" value={null} />
+              {fornitori.map(fornitore => (
+                <Picker.Item key={fornitore.id} label={fornitore.nome} value={fornitore.id} />
+              ))}
+            </Picker>
+
+            {/* ... (Input per quantità e note) ... */}
           </View>
-        )}
-        keyExtractor={item => item.id.toString()}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Note"
-        value={note}
-        onChangeText={setNote}
-        multiline
-      />
-      <Button title="Crea" onPress={handleSubmit} />
+        ))}
+      </ScrollView>
+
+      <Button title="Crea Lotto" onPress={handleSubmit} />
     </View>
   );
 };
 
-// ... (codice degli stili) ...
+// ... (Stili) ...
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

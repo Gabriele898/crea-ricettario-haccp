@@ -1,53 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
-import { Picker } from '@react-native-picker/picker';
+import { SearchBar } from 'react-native-elements';
 
 const supabaseUrl = 'https://acanrjccdzyrarquivkb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYW5yamNjZHp5cmFycXVpdmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjc0NTQsImV4cCI6MjA1MTg0MzQ1NH0.ljZLA5asW_vsrdd7Kd2Zimkc5wnqhbAXu2EdQbMunhE';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-
 const CategoriaScreen = ({ route, navigation }) => {
   const { nome } = route.params;
   const [semilavorati, setSemilavorati] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filtro, setFiltro] = useState(null);
+  const [filtroIngrediente, setFiltroIngrediente] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const fetchSemilavorati = async () => {
-      let query = supabase
-        .from('semilavorati')
-        .select('*')
-        .eq('categoria', nome);
+      try {
+        const { data, error } = await supabase
+          .from('semilavorati')
+          .select('*')
+          .eq('categoria', nome);
 
-      if (searchTerm) {
-        query = query.ilike('nome', `%${searchTerm}%`);
-      }
+        if (error) {
+          console.error('Errore nel recupero dei semilavorati:', error);
+        } else {
+          let semilavoratiFiltrati = data;
 
-      if (filtro) {
-        query = query.eq('filtro', filtro);
-      }
+          if (filtroIngrediente) {
+            semilavoratiFiltrati = semilavoratiFiltrati.filter(semilavorato => {
+              return semilavorato.ingredienti.some(ingrediente => ingrediente.tipo === filtroIngrediente);
+            });
+          }
 
-      const { data, error } = await query;
+          // Filtro per ricerca
+          if (search) {
+            const searchTerm = search.toLowerCase();
+            semilavoratiFiltrati = semilavoratiFiltrati.filter(semilavorato =>
+              semilavorato.nome.toLowerCase().includes(searchTerm)
+            );
+          }
 
-      if (error) {
-        console.error('Errore durante il recupero dei semilavorati:', error);
-      } else {
-        setSemilavorati(data);
+          setSemilavorati(semilavoratiFiltrati);
+        }
+      } catch (error) {
+        console.error('Errore generico:', error);
       }
     };
 
     fetchSemilavorati();
-  }, [nome, searchTerm, filtro]);
+  }, [nome, filtroIngrediente, search]);
 
   const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <Text style={styles.itemText}>{item.nome}</Text>
-      <Button
-        title="Crea Lotto" // Cambia il titolo del pulsante
-        onPress={() => navigation.navigate('CreaLottoProduzione', { semilavoratoId: item.id })} // Naviga a CreaLottoProduzione e passa l'ID
-      />
+    <View style={styles.semilavoratoItem}> {/* Usa View per contenere il testo e il pulsante */}
+      <Text style={styles.semilavoratoButtonText}>{item.nome}</Text>
+      <TouchableOpacity
+        style={styles.creaLottoButton}
+        onPress={() => navigation.navigate('CreaLottoScreen', { semilavorato: item })}
+      >
+        <Text style={styles.creaLottoButtonText}>Crea Lotto</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -55,31 +66,30 @@ const CategoriaScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>{nome}</Text>
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Cerca semilavorato..."
-        value={searchTerm}
-        onChangeText={setSearchTerm}
-      />
+      {/* Filtri */}
+      <View style={styles.filtri}>
+        {/* ... (codice per i filtri) ... */}
+      </View>
 
-      <Picker
-        selectedValue={filtro}
-        onValueChange={(itemValue) => setFiltro(itemValue)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Tutti" value={null} />
-        <Picker.Item label="Carne" value="carne" />
-        <Picker.Item label="Pesce" value="pesce" />
-      </Picker>
+      <SearchBar
+        placeholder="Cerca semilavorati..."
+        onChangeText={(text) => setSearch(text)}
+        value={search}
+        lightTheme
+        containerStyle={styles.searchBarContainer}
+        inputContainerStyle={styles.searchBarInputContainer}
+      />
 
       <FlatList
         data={semilavorati}
         renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()}
       />
     </View>
   );
 };
+
+// ... (styles) ...
 
 const styles = StyleSheet.create({
   container: {
@@ -87,31 +97,34 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
     marginBottom: 20,
   },
-  picker: {
-    height: 50,
-    width: 200,
-    marginBottom: 20,
+  semilavoratoButton: {
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    marginVertical: 5,
+    borderRadius: 5,
   },
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  itemText: {
+  semilavoratoButtonText: {
     fontSize: 16,
+  },
+  filtri: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  filtro: {
+    fontSize: 16,
+    padding: 10,
+  },
+  filtroAttivo: {
+    fontSize: 16,
+    padding: 10,
+    fontWeight: 'bold',
+    borderBottomWidth: 2,
+    borderBottomColor: 'blue', 
   },
 });
 
