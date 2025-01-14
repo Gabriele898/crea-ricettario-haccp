@@ -8,7 +8,7 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const CategoriaScreen = ({ route, navigation }) => {
-  const { nome } = route.params;
+  const { nome } = route.params; // Nome della categoria passato da CategorieScreen
   const [semilavorati, setSemilavorati] = useState([]);
   const [filtroIngrediente, setFiltroIngrediente] = useState(null);
   const [search, setSearch] = useState('');
@@ -16,21 +16,31 @@ const CategoriaScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchSemilavorati = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('semilavorati')
           .select('*')
-          .eq('categoria', nome);
+          .eq('categoria', nome); // Filtra per la categoria ricevuta
+
+        // Applica filtro per ingrediente se presente
+        if (filtroIngrediente) {
+          query = query.eq('filtro', filtroIngrediente);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           console.error('Errore nel recupero dei semilavorati:', error);
         } else {
-          setSemilavorati(data); 
+          // Applica filtro per nome (search) se presente
+          const filteredData = data.filter(item => 
+            !search || item.nome.toLowerCase().includes(search.toLowerCase())
+          );
+          setSemilavorati(filteredData);
         }
       } catch (error) {
         console.error('Errore generico:', error);
       }
     };
-
     fetchSemilavorati();
   }, [nome]);
 
