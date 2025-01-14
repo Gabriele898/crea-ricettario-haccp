@@ -8,7 +8,13 @@ const BottomMenu = () => {
 
   return (
     <View style={styles.menu}>
-      <TouchableOpacity onPress={() => navigation.popToTop()}> 
+      <TouchableOpacity onPress={() => {
+  if (navigation.canGoBack()) { // Verifica se è possibile tornare indietro
+    navigation.goBack();
+  } else {
+    navigation.navigate('HomeScreen'); // Altrimenti, naviga alla HomeScreen
+  }
+}}>
   <Icon name="home" size={24} color="black" />
   <Text style={styles.menuItemText}>Home</Text>
       </TouchableOpacity>
@@ -35,6 +41,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10, // Aggiungi padding verticale per migliorare l'aspetto
+    borderWidth: 1, // Aggiungi un bordo
+    borderColor: '#ccc', // Colore del bordo
   },
 
   menuItemText: {
@@ -48,6 +56,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#ccc',
+    elevation: 5,
   },
 });
 

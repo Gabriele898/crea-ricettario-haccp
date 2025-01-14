@@ -24,23 +24,7 @@ const CategoriaScreen = ({ route, navigation }) => {
         if (error) {
           console.error('Errore nel recupero dei semilavorati:', error);
         } else {
-          let semilavoratiFiltrati = data;
-
-          if (filtroIngrediente) {
-            semilavoratiFiltrati = semilavoratiFiltrati.filter(semilavorato => {
-              return semilavorato.ingredienti.some(ingrediente => ingrediente.tipo === filtroIngrediente);
-            });
-          }
-
-          // Filtro per ricerca
-          if (search) {
-            const searchTerm = search.toLowerCase();
-            semilavoratiFiltrati = semilavoratiFiltrati.filter(semilavorato =>
-              semilavorato.nome.toLowerCase().includes(searchTerm)
-            );
-          }
-
-          setSemilavorati(semilavoratiFiltrati);
+          setSemilavorati(data); 
         }
       } catch (error) {
         console.error('Errore generico:', error);
@@ -48,10 +32,10 @@ const CategoriaScreen = ({ route, navigation }) => {
     };
 
     fetchSemilavorati();
-  }, [nome, filtroIngrediente, search]);
+  }, [nome]);
 
   const renderItem = ({ item }) => (
-    <View style={styles.semilavoratoItem}> {/* Usa View per contenere il testo e il pulsante */}
+    <View style={styles.semilavoratoItem}>
       <Text style={styles.semilavoratoButtonText}>{item.nome}</Text>
       <TouchableOpacity
         style={styles.creaLottoButton}
@@ -68,7 +52,18 @@ const CategoriaScreen = ({ route, navigation }) => {
 
       {/* Filtri */}
       <View style={styles.filtri}>
-        {/* ... (codice per i filtri) ... */}
+        <TouchableOpacity onPress={() => setFiltroIngrediente(null)}>
+          <Text style={filtroIngrediente === null ? styles.filtroAttivo : styles.filtro}>Tutti</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setFiltroIngrediente('carne')}>
+          <Text style={filtroIngrediente === 'carne' ? styles.filtroAttivo : styles.filtro}>Carne</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setFiltroIngrediente('pesce')}>
+          <Text style={filtroIngrediente === 'pesce' ? styles.filtroAttivo : styles.filtro}>Pesce</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setFiltroIngrediente('vegetariano')}>
+          <Text style={filtroIngrediente === 'vegetariano' ? styles.filtroAttivo : styles.filtro}>Vegetariano</Text>
+        </TouchableOpacity>
       </View>
 
       <SearchBar
@@ -89,8 +84,6 @@ const CategoriaScreen = ({ route, navigation }) => {
   );
 };
 
-// ... (styles) ...
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -101,7 +94,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  semilavoratoButton: {
+  semilavoratoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#f0f0f0',
     padding: 15,
     marginVertical: 5,
@@ -109,6 +105,15 @@ const styles = StyleSheet.create({
   },
   semilavoratoButtonText: {
     fontSize: 16,
+  },
+  creaLottoButton: {
+    backgroundColor: 'blue',
+    padding: 10,
+    borderRadius: 5,
+  },
+  creaLottoButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   filtri: {
     flexDirection: 'row',
@@ -124,7 +129,15 @@ const styles = StyleSheet.create({
     padding: 10,
     fontWeight: 'bold',
     borderBottomWidth: 2,
-    borderBottomColor: 'blue', 
+    borderBottomColor: 'blue',
+  },
+  searchBarContainer: {
+    backgroundColor: 'white',
+    borderBottomColor: 'transparent',
+    borderTopColor: 'transparent',
+  },
+  searchBarInputContainer: {
+    backgroundColor: '#f0f0f0',
   },
 });
 
