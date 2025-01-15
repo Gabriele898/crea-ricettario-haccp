@@ -49,7 +49,7 @@ const CategoriaScreen = ({ route, navigation }) => {
       <Text style={styles.semilavoratoButtonText}>{item.nome}</Text>
       <TouchableOpacity
         style={styles.creaLottoButton}
-        onPress={() => navigation.navigate('CreaLottoScreen', { semilavorato: item })}
+        onPress={() => navigation.navigate('CreaLottoProduzioneScreen', { semilavorato: item })}
       >
         <Text style={styles.creaLottoButtonText}>Crea Lotto</Text>
       </TouchableOpacity>

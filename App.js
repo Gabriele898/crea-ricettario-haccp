@@ -8,25 +8,27 @@ import CategorieScreen from './screens/CategorieScreen';
 import CategoriaScreen from './screens/CategoriaScreen';
 import CreaSemilavoratoScreen from './screens/CreaSemilavoratoScreen';
 import ListaCompletaSemilavoratiScreen from './screens/ListaCompletaSemilavoratiScreen';
-import CreaLottoScreen from './screens/CreaLottoScreen';
+import CreaLottoProduzioneScreen from './screens/CreaLottoProduzioneScreen';
 import DettagliSemilavoratoScreen from './screens/DettagliSemilavoratoScreen';
 import DettagliLottoScreen from './screens/DettagliLottoScreen';
+import LottoProduzioneDetailsScreen from './screens/LottoProduzioneDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Home' }} />
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
-        <Stack.Screen name="CategorieScreen" component={CategorieScreen} options={{ title: 'Categoria' }} />
+      <Stack.Navigator initialRouteName="HomeScreen">
+        <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Home' }} />
+        <Stack.Screen name="CategorieScreen" component={CategorieScreen} options={{ title: 'Categorie' }} />
+        <Stack.Screen name="CategoriaScreen" component={CategoriaScreen} options={{ title: 'Categoria' }} />
         <Stack.Screen name="CreaSemilavoratoScreen" component={CreaSemilavoratoScreen} options={{ title: 'Crea Semilavorato' }} />
         <Stack.Screen name="ListaCompletaSemilavoratiScreen" component={ListaCompletaSemilavoratiScreen} options={{ title: 'Lista Semilavorati' }} />
-        <Stack.Screen name="CreaLottoScreen" component={CreaLottoScreen} options={{ title: 'Crea Lotto' }} />
+        <Stack.Screen name="CreaLottoProduzioneScreen" component={CreaLottoProduzioneScreen} options={{ title: 'Crea Lotto Produzione' }} />
         <Stack.Screen name="DettagliSemilavoratoScreen" component={DettagliSemilavoratoScreen} options={{ title: 'Dettagli Semilavorato' }} />
         <Stack.Screen name="DettagliLottoScreen" component={DettagliLottoScreen} options={{ title: 'Dettagli Lotto' }} />
-        <Stack.Screen name="CategoriaScreen" component={CategoriaScreen} options={{ title: 'Categoria' }} />
+        <Stack.Screen name="LottoProduzioneDetailsScreen" component={LottoProduzioneDetailsScreen} options={{ title: 'Dettagli Lotto Produzione' }} 
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );

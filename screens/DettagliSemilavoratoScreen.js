@@ -25,7 +25,7 @@ const DettagliSemilavoratoScreen = ({ route, navigation }) => {
 
       <Button
         title="Crea Lotto"
-        onPress={() => navigation.navigate('CreaLottoScreen', { semilavorato })}
+        onPress={() => navigation.navigate('CreaLottoProduzioneScreen', { semilavorato })}
       />
     </View>
   );

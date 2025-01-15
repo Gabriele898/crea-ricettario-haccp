@@ -1,49 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import { createClient } from '@supabase/supabase-js';
-import BottomMenu from './components/BottomMenu';
 
 const supabaseUrl = 'https://acanrjccdzyrarquivkb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYW5yamNjZHp5cmFycXVpdmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjc0NTQsImV4cCI6MjA1MTg0MzQ1NH0.ljZLA5asW_vsrdd7Kd2Zimkc5wnqhbAXu2EdQbMunhE';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const categorie = [
-  'Entre',
-  'Antipasti Freddi',
-  'Antipasti caldi',
-  'Primi piatti',
-  'Secondi piatti',
-  'Dessert'
-];
+const HomeScreen = () => {
+  const navigation = useNavigation();
+  const [lottiProduzione, setLottiProduzione] = useState([]);
 
-const HomeScreen = ({ navigation }) => {
+  useEffect(() => {
+    const fetchLottiProduzione = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('lottiproduzione')
+          .select(`
+            id, 
+            semilavoratoid, 
+            dataproduzione,
+            semilavorati (nome)
+          `)
+          .order('dataproduzione', { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.error('Errore nel recupero dei lotti di produzione:', error);
+        } else {
+          setLottiProduzione(data);
+        }
+      } catch (error) {
+        console.error('Errore generico:', error);
+      }
+    };
+
+    fetchLottiProduzione();
+  }, []);
+
   const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <LinearGradient
-        colors={['#00FFFF', '#1E90FF']}
-        style={styles.gradient}
+    <View style={styles.lottoItem}>
+      <View> 
+        <Text style={styles.lottoNome}>{item.semilavorati.nome}</Text> 
+        <Text style={styles.lottoData}>{new Date(item.dataproduzione).toLocaleDateString()}</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.dettagliButton}
+        onPress={() => navigation.navigate('LottoProduzioneDetailsScreen', { lotto: item })} 
       >
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => navigation.navigate('CategoriaScreen', { nome: item })}
-        >
-          <Text style={styles.itemText}>{item}</Text> 
-        </TouchableOpacity>
-      </LinearGradient>
+        <Text style={styles.dettagliButtonText}>Dettagli</Text>
+      </TouchableOpacity>
     </View>
   );
+
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={categorie}
+        data={lottiProduzione}
         renderItem={renderItem}
-        keyExtractor={item => item}
-        numColumns={2} 
+        keyExtractor={(item) => item.id.toString()}
       />
-      {/* Aggiungi il BottomMenu */}
-      <BottomMenu /> 
     </View>
   );
 };
@@ -53,25 +70,28 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  item: {
-    margin: 10,
-    width: '45%', 
-    height: 150, 
-    borderRadius: 10, 
-    overflow: 'hidden', 
+  lottoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center', 
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    marginVertical: 5,
+    borderRadius: 5,
   },
-  gradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: { // Aggiungi stile per il pulsante
-    padding: 20, 
-    alignItems: 'center',
-  },
-  itemText: {
+  lottoNome: { 
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  lottoData: { 
+    fontSize: 14,
+  },
+  dettagliButton: { 
+    backgroundColor: 'blue',
+    padding: 10,
+    borderRadius: 5,
+  },
+  dettagliButtonText: {
     color: 'white',
   },
 });

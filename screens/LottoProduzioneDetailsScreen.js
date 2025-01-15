@@ -6,32 +6,36 @@ const supabaseUrl = 'https://acanrjccdzyrarquivkb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYW5yamNjZHp5cmFycXVpdmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjc0NTQsImV4cCI6MjA1MTg0MzQ1NH0.ljZLA5asW_vsrdd7Kd2Zimkc5wnqhbAXu2EdQbMunhE';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-
 const LottoProduzioneDetailsScreen = ({ route }) => {
-  const { id } = route.params;
-  const [lotto, setLotto] = useState(null);
+  const { lotto } = route.params;
+  const [responsabile, setResponsabile] = useState(null);
 
   useEffect(() => {
-    const fetchLotto = async () => {
-      const { data, error } = await supabase
-        .from('lottiproduzione')
-        .select(`
-          *,
-          semilavorati!inner(nome),
-          responsabili!inner(nome)
-        `)
-        .eq('id', id)
-        .single();
+    const fetchDettagli = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('lottiproduzione')
+          .select(`
+            *,
+            semilavorati!inner(nome),
+            responsabili!inner(nome)
+          `)
+          .eq('id', lotto.id)
+          .single();
 
-      if (error) {
-        console.error('Errore durante il recupero del lotto di produzione:', error);
-      } else {
-        setLotto(data);
+        if (error) {
+          console.error('Errore durante il recupero del lotto di produzione:', error);
+        } else {
+          console.log('Dati del lotto:', data);
+          setResponsabile(data.responsabili.nome); // Imposta il nome del responsabile
+        }
+      } catch (error) {
+        console.error('Errore generico:', error);
       }
     };
 
-    fetchLotto();
-  }, [id]);
+    fetchDettagli();
+  }, [lotto]);
 
   return (
     <View style={styles.container}>
@@ -39,15 +43,14 @@ const LottoProduzioneDetailsScreen = ({ route }) => {
         <>
           <Text style={styles.title}>{lotto.semilavorati.nome}</Text>
           <Text style={styles.subtitle}>ID Lotto: {lotto.id}</Text>
-          <Text style={styles.subtitle}>Data produzione: {lotto.dataProduzione}</Text>
-          <Text style={styles.subtitle}>Responsabile: {lotto.responsabili.nome}</Text>
+          <Text style={styles.subtitle}>Data produzione: {new Date(lotto.dataproduzione).toLocaleDateString()}</Text>
+          <Text style={styles.subtitle}>Responsabile: {responsabile || 'N/A'}</Text>
+
+          {/* Sezione Ingredienti */}
           <Text style={styles.subtitle}>Ingredienti:</Text>
-          {lotto.ingredienti.ingredienti.map((ingrediente, index) => (
+          {lotto.ingredienti && Array.isArray(lotto.ingredienti) && lotto.ingredienti.map((ingrediente, index) => (
             <View key={index} style={styles.ingrediente}>
               <Text style={styles.ingredienteText}>{ingrediente.nome}</Text>
-              <Text style={styles.ingredienteText}>Quantità: {ingrediente.quantita}</Text>
-              <Text style={styles.ingredienteText}>DDT: {ingrediente.ddt}</Text>
-              <Text style={styles.ingredienteText}>Data arrivo: {ingrediente.dataArrivo}</Text>
             </View>
           ))}
         </>
@@ -55,6 +58,7 @@ const LottoProduzioneDetailsScreen = ({ route }) => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "tracciabilita-ristorante-app",
-    "slug": "tracciabilita-ristorante-app",
+    "name": "crea-ricettario-haccp",
+    "slug": "crea-ricettario-haccp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
