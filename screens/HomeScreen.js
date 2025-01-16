@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { createClient } from '@supabase/supabase-js';
+import { useNavigation } from '@react-navigation/native';
 
 const supabaseUrl = 'https://acanrjccdzyrarquivkb.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYW5yamNjZHp5cmFycXVpdmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNjc0NTQsImV4cCI6MjA1MTg0MzQ1NH0.ljZLA5asW_vsrdd7Kd2Zimkc5wnqhbAXu2EdQbMunhE';
@@ -40,19 +40,18 @@ const HomeScreen = () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.lottoItem}>
-      <View> 
-        <Text style={styles.lottoNome}>{item.semilavorati.nome}</Text> 
+      <View>
+        <Text style={styles.lottoNome}>{item.semilavorati.nome}</Text>
         <Text style={styles.lottoData}>{new Date(item.dataproduzione).toLocaleDateString()}</Text>
       </View>
       <TouchableOpacity
         style={styles.dettagliButton}
-        onPress={() => navigation.navigate('LottoProduzioneDetailsScreen', { lotto: item })} 
+        onPress={() => navigation.navigate('LottoProduzioneDetailsScreen', { lotto: item })}
       >
         <Text style={styles.dettagliButtonText}>Dettagli</Text>
       </TouchableOpacity>
     </View>
   );
-
 
   return (
     <View style={styles.container}>
@@ -73,20 +72,20 @@ const styles = StyleSheet.create({
   lottoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center', 
+    alignItems: 'center',
     backgroundColor: '#f0f0f0',
     padding: 15,
     marginVertical: 5,
     borderRadius: 5,
   },
-  lottoNome: { 
+  lottoNome: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  lottoData: { 
+  lottoData: {
     fontSize: 14,
   },
-  dettagliButton: { 
+  dettagliButton: {
     backgroundColor: 'blue',
     padding: 10,
     borderRadius: 5,
